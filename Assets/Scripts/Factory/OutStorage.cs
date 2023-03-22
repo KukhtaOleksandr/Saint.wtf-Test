@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using ScriptableObjects.Resources;
 using UnityEngine;
 
@@ -12,14 +13,48 @@ namespace Factory
         [SerializeField] private Transform _lowBound;
 
         [SerializeField] private Vector3 _cellSize = new Vector3(2f, 1, 1);
+
+        public bool IsFull { get => _resources.Count == Capacity; }
+        public bool IsEmpty { get => _resources.Count == 0; }
+        public List<Resource> Resources { get => _resources; }
+
+        private List<Resource> _resources;
         private Vector3 _last;
 
         private bool isFirstInRow = true;
 
         void Awake()
         {
+            _resources = new List<Resource>();
             _last = new Vector3(_leftBound.position.x, _leftBound.position.y + _cellSize.y / 2, _forwardBound.position.z - _cellSize.z / 2);
         }
+
+        public void Add(Resource resource)
+        {
+            _resources.Add(resource);
+        }
+
+        public Resource GetAndRemoveLast()
+        {
+            if (_resources.Count > 0)
+            {
+                int index = _resources.Count - 1;
+                Resource result = _resources[index];
+                _resources.RemoveAt(index);
+
+                if (_resources.Count == 0)
+                {
+                    _last = new Vector3(_leftBound.position.x - _cellSize.x / 2, _leftBound.position.y + _cellSize.y / 2, _forwardBound.position.z - _cellSize.z / 2);
+                }
+                else
+                    _last = result.transform.position;
+
+                
+                return result;
+            }
+            return null;
+        }
+
 
         public Vector3 GetNextCell()
         {
@@ -45,6 +80,7 @@ namespace Factory
             }
             _last = result;
             return result;
+
         }
     }
 }

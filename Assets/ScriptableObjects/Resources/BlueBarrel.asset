@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 32fdd51d5f0c9e645bab40ac7fb97737, type: 3}
   m_Name: BlueBarrel
   m_EditorClassIdentifier: 
-  _type: 0
-  _resourcePrefab: {fileID: 442170870081200758, guid: ac95a611f91e54748a70cab172d7beb3, type: 3}
+  _type: 1
+  _resourcePrefab: {fileID: -8172373794323387744, guid: ac95a611f91e54748a70cab172d7beb3, type: 3}

@@ -7,10 +7,10 @@ namespace ScriptableObjects.Resources
     public class ResourceBase : ScriptableObject
     {
         [SerializeField] private ResourceType _type;
-        [SerializeField] private Transform _resourcePrefab;
+        [SerializeField] private Resource _resourcePrefab;
 
-        public ResourceType Type { get => _type; set => _type = value; }
-        public Transform ResourcePrefab { get => _resourcePrefab; set => _resourcePrefab = value; }
+        public ResourceType Type { get => _type; }
+        public Resource ResourcePrefab { get => _resourcePrefab; }
     }
 
 }

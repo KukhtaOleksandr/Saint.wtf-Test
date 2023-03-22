@@ -1,5 +1,5 @@
 using System.Collections;
-using System.Threading.Tasks;
+using DG.Tweening;
 using ScriptableObjects.Resources;
 using StateMachine.Base;
 using UnityEngine;
@@ -9,9 +9,11 @@ namespace Factory.StateMachine
 {
     public class ProducingState : IState
     {
-        [Inject] protected ResourceBase _resource;
-        [Inject] protected OutStorage _outStorage;
-        [Inject] protected CoroutineStarter _coroutineStarter;
+        [Inject] private Transform _spawnPoint;
+        [Inject] private ResourceBase _resource;
+        [Inject] private OutStorage _outStorage;
+        [Inject] private CoroutineStarter _coroutineStarter;
+        [Inject] private SignalBus _signalBus;
         private bool _isObjectAlive;
 
         public void Enter()
@@ -25,7 +27,16 @@ namespace Factory.StateMachine
             while (_isObjectAlive)
             {
                 yield return new WaitForSeconds(1);
-                GameObject.Instantiate(_resource.ResourcePrefab, _outStorage.GetNextCell(), Quaternion.Euler(0, 0, -90));
+                if (_outStorage.IsFull == false)
+                {
+                    Resource resource = GameObject.Instantiate(_resource.ResourcePrefab, _spawnPoint.position, Quaternion.Euler(0, 90, 0));
+                    resource.transform.DOMove(_outStorage.GetNextCell(), 0.3f);
+                    _outStorage.Add(resource);
+                }
+                else
+                {
+                    _signalBus.Fire<MonoSignalChangedState>(new MonoSignalChangedState() { State = new OutStorageIsFull() });
+                }
             }
         }
 

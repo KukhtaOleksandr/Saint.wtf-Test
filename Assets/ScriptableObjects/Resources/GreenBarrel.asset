@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: GreenBarrel
   m_EditorClassIdentifier: 
   _type: 0
-  _resourcePrefab: {fileID: 4488560594286082274, guid: ea13cda774c96974582ce5ffd296259f, type: 3}
+  _resourcePrefab: {fileID: 4134807226048754, guid: 5431adc80e08f93458da7ed4271e9e75, type: 3}
