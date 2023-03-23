@@ -28,24 +28,32 @@ namespace Factory.StateMachine
             while (_isObjectAlive)
             {
                 yield return new WaitForSeconds(1);
-                if (_inStorage.IsEmpty == false)
+                if (_inStorage.CanProduce)
                 {
                     if (_outStorage.IsFull == false)
                     {
-                        Resource inResource = _inStorage.GetLast();
-                        inResource.transform.DOMove(_spawnPoint.position, 0.5f).OnComplete(() =>
+                        foreach (var r in _inStorage.InputCraft.ResourcesForProduction)
                         {
-                            _inStorage.RemoveLast();
-                            Resource resource = GameObject.Instantiate(_outResource.ResourcePrefab, _spawnPoint.position, Quaternion.Euler(0, 90, 0));
-                            resource.transform.DOMove(_outStorage.GetNextCell(), 0.3f);
-                            _outStorage.Add(resource);
-                        });
-
+                            yield return new WaitForSeconds(0.1f);
+                            Resource inResource = _inStorage.GetLastOfType(r);
+                            inResource.transform.DOMove(_spawnPoint.position, 0.5f).OnComplete(() =>
+                            {
+                                _inStorage.RemoveLastOfType(r);
+                            });
+                            yield return new WaitForSeconds(0.5f);
+                        }
+                        Resource resource = GameObject.Instantiate(_outResource.ResourcePrefab, _spawnPoint.position, Quaternion.Euler(0, 90, 0));
+                        resource.transform.DOMove(_outStorage.GetNextFreeCell(), 0.3f);
+                        _outStorage.Add(resource);
                     }
                     else
                     {
                         _signalBus.Fire<MonoSignalChangedState>(new MonoSignalChangedState() { State = new OutStorageIsFull() });
                     }
+                }
+                else
+                {
+                    _signalBus.Fire<MonoSignalChangedState>(new MonoSignalChangedState() { State = new MissingResourcesState() });
                 }
             }
         }

@@ -6,7 +6,7 @@ namespace Factory.StateMachine
     {
         protected override void Initialize()
         {
-            ChangeState<ProducingWithResourcesState>();
+            ChangeState<MissingResourcesState>();
         }
     }
 }

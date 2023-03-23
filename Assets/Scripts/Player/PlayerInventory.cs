@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -5,27 +6,47 @@ using System.Linq;
 using Factory;
 using UnityEngine;
 using Zenject;
+using Extensions;
+using Factory.StateMachine;
 
 public class PlayerInventory : MonoBehaviour
 {
     [Inject] private CoroutineStarter _coroutineStarter;
+    [Inject] private SignalBus _signalBus;
     [SerializeField] private int _capacity = 20;
 
     private const int RotationOffset = 55;
 
     private List<Resource> _resources;
+    private List<Vector3> _cells;
+    private List<Vector3> _freeCells;
 
     private OutStorage _outStorage;
     private InStorage _inStorage;
     private Vector3 _lastPosition;
     private Transform _lastTransform;
     private bool _isFirst = true;
+    private int _firstMovedResourceIndex;
 
     void Awake()
     {
+        _cells = new List<Vector3>();
+        _freeCells = new List<Vector3>();
+
         _resources = new List<Resource>();
         _lastPosition = transform.position;
         _lastTransform = transform;
+
+        for (int i = 0; i < _capacity; i++)
+        {
+            _cells.Add(GetNextCellPosition());
+            _freeCells.Add(_cells[i]);
+        }
+    }
+
+    private Vector3 GetNextCellPosition()
+    {
+        return new Vector3(0, _lastPosition.y + 1, 0);
     }
 
     void OnTriggerEnter(Collider other)
@@ -34,16 +55,16 @@ public class PlayerInventory : MonoBehaviour
         {
             if (_inStorage.IsFull == false && _resources.Count > 0)
             {
-                List<Resource> inputResources = _resources.Where(x => x.ResourceType == _inStorage.InputResource).ToList();
+                List<Resource> inputResources = new List<Resource>();
+                foreach (var i in _inStorage.InputCraft.ResourcesForProduction)
+                {
+                    inputResources.AddRange(_resources.Where(x => x.ResourceType == i).ToList());
+                }
                 if (inputResources.Count > 0)
                 {
-                    foreach (var r in inputResources)
-                    {
-                        if (_inStorage.IsFull == false)
-                            Remove(_inStorage, _resources[_resources.Count - 1]);
-                        else
-                            return;
-                    }
+                    _firstMovedResourceIndex = _resources.IndexOf(inputResources[0]);
+                    _inStorage.PreAdd();
+                    Remove(_inStorage, inputResources);
                 }
             }
         }
@@ -60,19 +81,30 @@ public class PlayerInventory : MonoBehaviour
         }
     }
 
-    private void Remove(InStorage inStorage, Resource resource)
+    private void Remove(InStorage inStorage, List<Resource> resources)
     {
-        Vector3 newPosition = inStorage.GetNextCell();
-
-        resource.transform.parent = null;
-        _coroutineStarter.StartCoroutine(DoMove(resource, newPosition, inStorage));
-
-        resource.transform.rotation = Quaternion.identity;
-
-        _resources.RemoveAt(_resources.Count - 1);
+        foreach (var r in resources)
+        {
+            if (_inStorage.IsFull == false)
+            {
+                _freeCells.Insert(0, _cells[_resources.IndexOf(r)]);
+                _resources.Remove(r);
+                inStorage.Add(r);
+            }
+        }
 
         if (_resources.Count > 0)
         {
+            if (_freeCells[0].y <= _resources.GetLast().transform.position.y)
+            {
+                List<Resource> resourcesToMove = _resources.Where(x => x.transform.position.y > _freeCells[0].y).ToList();
+                float yPosition = _freeCells[0].y;
+                foreach (var res in resourcesToMove)
+                {
+                    res.transform.position = new Vector3(transform.position.x, yPosition + 1, transform.position.z);
+                    yPosition++;
+                }
+            }
             _lastPosition.y = _resources[_resources.Count - 1].transform.position.y;
             _lastTransform = _resources[_resources.Count - 1].transform;
         }
@@ -89,11 +121,20 @@ public class PlayerInventory : MonoBehaviour
         Transform _resourceTransform = resource.transform;
         _resources.Add(resource);
 
-        Vector3 newPosition = new Vector3(transform.position.x, _lastPosition.y + 1, transform.position.z);
+        Vector3 newPosition = new Vector3(transform.position.x, GetNextCellPosition().y, transform.position.z);
 
         _coroutineStarter.StartCoroutine(DoMove(_resourceTransform, transform, _lastPosition.y));
 
         _resourceTransform.parent = this.transform;
+        SetRotation(_resourceTransform);
+
+        _lastPosition = newPosition;
+
+        _lastTransform = _resourceTransform;
+    }
+
+    private void SetRotation(Transform _resourceTransform)
+    {
         if (_isFirst == false)
         {
             _resourceTransform.rotation = _lastTransform.rotation;
@@ -103,10 +144,6 @@ public class PlayerInventory : MonoBehaviour
             _isFirst = false;
             _resourceTransform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y - RotationOffset, 0);
         }
-
-        _lastPosition = newPosition;
-
-        _lastTransform = _resourceTransform;
     }
 
     IEnumerator DoMove(Transform transform, Transform to, float yPosition)
@@ -117,15 +154,7 @@ public class PlayerInventory : MonoBehaviour
             yield return null;
         }
     }
-    IEnumerator DoMove(Resource resource, Vector3 to, InStorage inStorage)
-    {
-        while (Vector3.Distance(resource.transform.position, to) > 0.001f)
-        {
-            resource.transform.position = Vector3.Lerp(resource.transform.position, to, Time.deltaTime * 15);
-            yield return null;
-        }
-        inStorage.Add(resource);
-    }
+
 
 
 }

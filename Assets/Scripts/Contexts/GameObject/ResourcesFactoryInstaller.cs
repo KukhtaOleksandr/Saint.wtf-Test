@@ -17,6 +17,7 @@ namespace Contexts.GameObject
         public override void InstallBindings()
         {
             Container.DeclareSignal<MonoSignalChangedState>();
+            Container.DeclareSignal<SignalInStorageIsNotEmpty>();
             Container.BindInstance(_outResource);
             Container.BindInstance(_outStorage);
             Container.BindInstance(_inStorage);

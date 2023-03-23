@@ -30,7 +30,7 @@ namespace Factory.StateMachine
                 if (_outStorage.IsFull == false)
                 {
                     Resource resource = GameObject.Instantiate(_resource.ResourcePrefab, _spawnPoint.position, Quaternion.Euler(0, 90, 0));
-                    resource.transform.DOMove(_outStorage.GetNextCell(), 0.3f);
+                    resource.transform.DOMove(_outStorage.GetNextFreeCell(), 0.3f);
                     _outStorage.Add(resource);
                 }
                 else

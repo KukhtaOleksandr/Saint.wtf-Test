@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 32fdd51d5f0c9e645bab40ac7fb97737, type: 3}
   m_Name: RedBarrel
   m_EditorClassIdentifier: 
-  _type: 0
-  _resourcePrefab: {fileID: 8103056409083696336, guid: 20250eaeae9e3fe4ab86c1046540c050, type: 3}
+  _type: 2
+  _resourcePrefab: {fileID: 1149667444312519758, guid: 20250eaeae9e3fe4ab86c1046540c050, type: 3}
