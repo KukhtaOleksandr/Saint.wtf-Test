@@ -1,0 +1,27 @@
+fileFormatVersion: 2
+guid: 9cd3e4e0616dee2468472325f179b381
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontNames:
+  - Sahabat Kecil
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: dafd67a3ed79821448a53341c3246527, type: 3}
+  - {fileID: 12800000, guid: 4980c841ce3eb8a49a2f012f064b893b, type: 3}
+  - {fileID: 12800000, guid: caf26354f4c672e46ac00ff84d020bc8, type: 3}
+  - {fileID: 12800000, guid: 907d90af934da1e44aa6086f391295db, type: 3}
+  - {fileID: 12800000, guid: d42eaf5e63b32334b99d10d45600108c, type: 3}
+  - {fileID: 12800000, guid: 4b974a86773f5d74487ead624a64e82c, type: 3}
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
+  shouldRoundAdvanceValue: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

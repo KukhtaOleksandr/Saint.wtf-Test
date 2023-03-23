@@ -2,11 +2,13 @@ using System.Collections.Generic;
 using Extensions;
 using ScriptableObjects.Resources;
 using UnityEngine;
+using Zenject;
 
 namespace Factory
 {
     public class OutStorage : MonoBehaviour
     {
+        [Inject] SignalBus _signalBus;
         [SerializeField] private int _capacity;
         [SerializeField] private Transform _leftBound;
         [SerializeField] private Transform _rightBound;
@@ -50,11 +52,13 @@ namespace Factory
         {
             if (_resources.Count > 0)
             {
+                
                 int index = _resources.GetLastIndex();
                 Resource result = _resources[index];
                 _resources.RemoveAt(index);
                 
                 _freeCells.Insert(0,_cells[index]);
+                _signalBus.Fire<SignalStorageIsNotFull>();
 
                 return result;
             }

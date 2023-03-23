@@ -48,7 +48,6 @@ namespace Factory
                 return canProduce;
             }
         }
-        public bool IsEmpty { get => _resources.Count == 0; }
         public InputCraft InputCraft { get => _inputCraft; }
 
         private Dictionary<ResourceType, List<Resource>> _resources;
