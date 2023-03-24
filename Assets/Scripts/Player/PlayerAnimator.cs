@@ -1,45 +1,46 @@
 using System.Collections;
 using UnityEngine;
 
-public class PlayerAnimator : MonoBehaviour
+namespace Player
 {
-    private const string RunTrigger = "DoRun";
-    private const string IdleTrigger = "DoIdle";
-    [SerializeField] private FloatingJoystick _joystick;
-    [SerializeField] private Animator _animator;
-    private bool _objectAlive;
-    private bool isLastRun = false;
-
-    void Start()
+    public class PlayerAnimator : MonoBehaviour
     {
-        _objectAlive = true;
-        StartCoroutine("CheckForRun");
-    }
+        private const string RunTrigger = "DoRun";
+        private const string IdleTrigger = "DoIdle";
+        [SerializeField] private FloatingJoystick _joystick;
+        [SerializeField] private Animator _animator;
+        private bool _objectAlive;
+        private bool isLastRun = false;
 
-    void OnDestroy()
-    {
-        _objectAlive = false;
-    }
-
-    private IEnumerator CheckForRun()
-    {
-        while (_objectAlive)
+        void Start()
         {
-            if (_joystick.Horizontal != 0 && _joystick.Vertical != 0)
+            _objectAlive = true;
+            StartCoroutine("CheckForRun");
+        }
+
+        void OnDestroy()
+        {
+            _objectAlive = false;
+        }
+
+        private IEnumerator CheckForRun()
+        {
+            while (_objectAlive)
             {
-                if(isLastRun == false)
-                    _animator.SetTrigger(RunTrigger);
-                isLastRun = true;
+                if (_joystick.Horizontal != 0 && _joystick.Vertical != 0)
+                {
+                    if (isLastRun == false)
+                        _animator.SetTrigger(RunTrigger);
+                    isLastRun = true;
+                }
+                else
+                {
+                    if (isLastRun == true)
+                        _animator.SetTrigger(IdleTrigger);
+                    isLastRun = false;
+                }
+                yield return new WaitForSeconds(0.05f);
             }
-            else
-            {
-                if(isLastRun == true)
-                    _animator.SetTrigger(IdleTrigger);
-                isLastRun = false;
-            }
-            yield return new WaitForSeconds(0.05f);
         }
     }
-
-
 }

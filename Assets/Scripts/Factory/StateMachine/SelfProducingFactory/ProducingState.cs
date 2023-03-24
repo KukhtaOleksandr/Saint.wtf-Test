@@ -10,6 +10,7 @@ namespace Factory.StateMachine.SelfProducingFactory
 {
     public class ProducingState : IState
     {
+        private const float MoveDuration = 0.3f;
         [Inject] private Transform _spawnPoint;
         [Inject] private TextMeshProUGUI _stateText;
         [Inject] private ResourceBase _resource;
@@ -34,8 +35,7 @@ namespace Factory.StateMachine.SelfProducingFactory
                 if (_outStorage.IsFull == false)
                 {
                     Resource resource = GameObject.Instantiate(_resource.ResourcePrefab, _spawnPoint.position, Quaternion.Euler(0, 90, 0));
-                    resource.transform.DOMove(_outStorage.GetNextFreeCell(), 0.3f);
-                    _outStorage.Add(resource);
+                    resource.transform.DOMove(_outStorage.GetNextFreeCell(), MoveDuration).OnComplete(()=>_outStorage.Add(resource));
                 }
                 else
                 {

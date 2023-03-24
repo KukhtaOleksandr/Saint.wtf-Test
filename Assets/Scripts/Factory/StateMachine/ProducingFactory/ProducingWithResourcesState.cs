@@ -46,9 +46,10 @@ namespace Factory.StateMachine.ProducingFactory
                             });
                             yield return new WaitForSeconds(0.5f);
                         }
-                        Resource resource = GameObject.Instantiate(_outResource.ResourcePrefab, _spawnPoint.position, Quaternion.Euler(0, 90, 0));
-                        resource.transform.DOMove(_outStorage.GetNextFreeCell(), 0.3f);
-                        _outStorage.Add(resource);
+
+                        Resource resource = GameObject.Instantiate(_outResource.ResourcePrefab, 
+                                                                   _spawnPoint.position, Quaternion.Euler(0, 90, 0));
+                        resource.transform.DOMove(_outStorage.GetNextFreeCell(), 0.3f).OnComplete(()=>_outStorage.Add(resource));
                     }
                     else
                     {

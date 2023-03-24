@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using Extensions;
 using Factory.StateMachine;
 using UnityEngine;
@@ -35,6 +34,7 @@ namespace Factory
             }
 
         }
+
         public bool CanProduce
         {
             get
@@ -48,6 +48,7 @@ namespace Factory
                 return canProduce;
             }
         }
+
         public InputCraft InputCraft { get => _inputCraft; }
 
         private Dictionary<ResourceType, List<Resource>> _resources;
@@ -69,6 +70,12 @@ namespace Factory
             }
         }
 
+        public bool IsFullOfType(ResourceType type)
+        {
+            if(_resources[type].Count==_capacity)
+                return true;
+            return false;
+        }
 
         public void PreAdd()
         {
@@ -78,8 +85,8 @@ namespace Factory
         public void Add(Resource resource)
         {
             _resources[resource.ResourceType].Add(resource);
-
             Vector3 newPosition = GetNextFreeCell();
+            _resources[resource.ResourceType].GetLast().Cell = newPosition;
 
             resource.transform.parent = null;
 
@@ -89,45 +96,14 @@ namespace Factory
             resource.transform.rotation = Quaternion.identity;
         }
 
-
-        IEnumerator DoMove(Resource resource, Vector3 to, int index)
-        {
-            while (Vector3.Distance(resource.transform.position, to) > 0.001f)
-            {
-                resource.transform.position = Vector3.Lerp(resource.transform.position, to, Time.deltaTime * 15);
-                yield return null;
-            }
-            _isMoveAnimationsFinished[index] = true;
-            bool isFinished = true;
-            foreach (var i in _isMoveAnimationsFinished)
-            {
-                if (i == false)
-                {
-                    isFinished = false;
-                    break;
-                }
-            }
-
-            if (isFinished)
-            {
-                bool isReadyForProduction = true;
-                foreach (var r in InputCraft.ResourcesForProduction)
-                {
-                    if (_resources[r].Count == 0)
-                        isReadyForProduction = false;
-                }
-                if (isReadyForProduction)
-                    _signalBus.Fire<SignalInStorageIsNotEmpty>();
-            }
-        }
-
         public void RemoveLastOfType(ResourceType resourceType)
         {
             if (_resources.Count > 0)
             {
-                int index = _resources[resourceType].GetLastIndex();
-                Transform result = _resources[resourceType][index].transform;
-                _resources[resourceType].RemoveAt(index);
+                Resource resource = _resources[resourceType].GetLast();
+
+                _resources[resourceType].Remove(resource);
+                int index = _cells.IndexOf(resource.Cell);
                 _freeCells.Insert(0, _cells[index]);
             }
         }
@@ -151,36 +127,86 @@ namespace Factory
             Vector3 result;
             if (isFirstInRow)
             {
-                result = new Vector3(_last.x, _last.y, _last.z + _cellSize.z / 2);
+                result = GetFirstInRowPosition();
                 isFirstInRow = false;
             }
             else
             {
                 float zResult = _last.z + _cellSize.z;
                 if (zResult < _rightBound.position.z)
-                    result = new Vector3(_last.x, _last.y, _last.z + _cellSize.z);
+                    result = GetFirstInNextRowPosition();
                 else
                 {
                     float xResult = _last.x + _cellSize.x;
                     if (xResult > _lowBound.position.x)
-                        result = new Vector3(_forwardBound.position.x + _cellSize.x / 2, _last.y + _cellSize.y, _leftBound.position.z + _cellSize.z / 2);
+                        result = GetFirstInNewVerticalRowPosition();
                     else
                         result = new Vector3(xResult, _last.y, _leftBound.position.z + _cellSize.z / 2);
                 }
             }
+            
             _last = result;
             return result;
+        }
 
+        private Vector3 GetFirstInNewVerticalRowPosition()
+        {
+            return new Vector3(_forwardBound.position.x + _cellSize.x / 2, _last.y + _cellSize.y, _leftBound.position.z + _cellSize.z / 2);
+        }
+
+        private Vector3 GetFirstInNextRowPosition()
+        {
+            return new Vector3(_last.x, _last.y, _last.z + _cellSize.z);
+        }
+
+        private Vector3 GetFirstInRowPosition()
+        {
+            return new Vector3(_last.x, _last.y, _last.z + _cellSize.z / 2);
+        }
+
+        IEnumerator DoMove(Resource resource, Vector3 to, int index)
+        {
+            while (Vector3.Distance(resource.transform.position, to) > 0.001f)
+            {
+                resource.transform.position = Vector3.Lerp(resource.transform.position, to, Time.deltaTime * 15);
+                yield return null;
+            }
+
+            _isMoveAnimationsFinished[index] = true;
+            bool isFinished = true;
+
+            foreach (var i in _isMoveAnimationsFinished)
+            {
+                if (i == false)
+                {
+                    isFinished = false;
+                    break;
+                }
+            }
+
+            if (isFinished)
+            {
+                bool isReadyForProduction = true;
+                foreach (var r in InputCraft.ResourcesForProduction)
+                {
+                    if (_resources[r].Count == 0)
+                        isReadyForProduction = false;
+                }
+                if (isReadyForProduction)
+                    _signalBus.Fire<SignalInStorageIsNotEmpty>();
+            }
         }
 
         private void Init()
         {
             _isMoveAnimationsFinished = new List<bool>();
             _resources = new Dictionary<ResourceType, List<Resource>>();
+
             foreach (var r in InputCraft.ResourcesForProduction)
             {
                 _resources.Add(r, new List<Resource>());
             }
+
             _cells = new List<Vector3>();
             _freeCells = new List<Vector3>();
             _last = new Vector3(_forwardBound.position.x + _cellSize.x / 2, _leftBound.position.y + _cellSize.y / 2, _leftBound.position.z);
